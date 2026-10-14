@@ -1,0 +1,17 @@
+/node_modules/
+/dist/
+/.env
+/api/.env
+*.tsbuildinfo
+/tmp/
+/output/
+/.codex-remote-attachments/
+/.chrome-video-preview/
+/.edge-preview-20/
+/.edge-video-preview/
+/.edge-video-preview2/
+/AniTAG-complete-setup-guide.pdf
+/AniTAG-pages-upload.zip
+/AniTAG-source-and-deploy.zip
+/preview2.png
+/preview3.png
