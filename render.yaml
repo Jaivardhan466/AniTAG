@@ -3,7 +3,7 @@ services:
     name: anitag
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: node api/server.js
     healthCheckPath: /healthz
     envVars:
