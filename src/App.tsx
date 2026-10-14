@@ -273,16 +273,25 @@ function App() {
   useEffect(() => {
     if (!watching) return;
     let cancelled = false;
+    let choseInitialEpisode = false;
     setEpisodesLoading(true);
     setWatchError('');
-    void getPlayableEpisodes(watching.id).then((episodes) => {
+    const applyEpisodes = (episodes: PlayableEpisode[]) => {
       if (cancelled) return;
       setWatchEpisodes(episodes);
-      const resume = getWatchHistory().find(item => item.anime.id === watching.id);
-      const preferredAudio = settings.audioLanguage;
-      const first = episodes.find(ep => ep.number === resume?.episode && ep.audio === preferredAudio) || episodes.find((ep) => ep.audio === preferredAudio) || episodes[0] || null;
-      setCurrentEpisode(first);
-      if (first) setWatchAudio(first.audio);
+      if (!choseInitialEpisode && episodes.length) {
+        const resume = getWatchHistory().find(item => item.anime.id === watching.id);
+        const preferredAudio = settings.audioLanguage;
+        const first = episodes.find(ep => ep.number === resume?.episode && ep.audio === preferredAudio) || episodes.find((ep) => ep.audio === preferredAudio) || episodes[0] || null;
+        setCurrentEpisode(first);
+        if (first) setWatchAudio(first.audio);
+        choseInitialEpisode = Boolean(first);
+        setEpisodesLoading(false);
+      }
+    };
+    void getPlayableEpisodes(watching.id, applyEpisodes).then((episodes) => {
+      if (cancelled) return;
+      applyEpisodes(episodes);
       if (!episodes.length) setWatchError('No playable episodes were returned by the configured streaming API. Check that this anime is available from a source you are authorized to use.');
     }).catch((e: unknown) => {
       if (!cancelled) setWatchError(e instanceof Error ? e.message : 'Could not load episodes.');
@@ -347,6 +356,8 @@ function App() {
   const visibleEpisodeNumbers = episodeNumbers.filter(number => (episodeRange === 'all' || (number >= Number(episodeRange.split('-')[0]) && number <= Number(episodeRange.split('-')[1]))) && (!episodeSearch || String(number).includes(episodeSearch) || (watchEpisodes.find(ep => ep.number === number && ep.audio === watchAudio)?.title || '').toLowerCase().includes(episodeSearch.toLowerCase())));
   const episodeRanges = Array.from({ length: Math.ceil(episodeNumbers.length / 100) }, (_, index) => { const start = index * 100 + 1; const end = Math.min((index + 1) * 100, episodeNumbers[episodeNumbers.length - 1] || 0); return { value: start + '-' + end, label: start + '–' + end }; });
   const currentEpisodeSources = currentEpisode ? watchEpisodes.filter((ep) => ep.number === currentEpisode.number && ep.audio === watchAudio) : [];
+  const directStreamSources = streamSources.filter((source) => source.type?.toLowerCase() !== 'embed');
+  const streamOptions = directStreamSources.length ? directStreamSources : streamSources;
 
   const heading = catalogTerm ? 'Results for “' + catalogTerm + '”' : mode === 'saved' ? 'Your watchlist' : mode === 'popular' ? 'Popular right now' : 'Trending anime';
   const activeFilters = Boolean(genreFilter || yearFilter || formatFilter || statusFilter);
@@ -513,8 +524,8 @@ function App() {
                 </select>
               </label>
               <label className="server-select">Stream
-                <select value={String(sourceIndex)} disabled={streamSources.length < 2} onChange={(e) => { const index = Number(e.target.value); setSourceIndex(index); setCurrentSource(streamSources[index] || null); setPlayerError(''); }}>
-                  {streamSources.map((source, index) => <option key={`${source.url}-${index}`} value={String(index)}>{source.label || source.server || `Server ${index + 1}`}</option>)}
+                <select value={String(Math.max(0, streamOptions.indexOf(currentSource || streamSources[sourceIndex])))} disabled={streamOptions.length < 2} onChange={(e) => { const source = streamOptions[Number(e.target.value)]; if (!source) return; setSourceIndex(streamSources.indexOf(source)); setCurrentSource(source); setPlayerError(''); }}>
+                  {streamOptions.map((source, index) => <option key={`${source.url}-${index}`} value={String(index)}>{source.label || source.server || `Server ${index + 1}`}</option>)}
                 </select>
               </label>
             </div>
