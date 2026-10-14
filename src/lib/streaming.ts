@@ -1,6 +1,6 @@
 export type AudioMode = 'sub' | 'dub';
 export interface StreamSubtitle { url: string; label?: string; srclang?: string; language?: string; format?: string; default?: boolean }
-export interface StreamSource { provider?: string; url: string; type?: string; server?: string; label?: string; referer?: string; subtitles?: StreamSubtitle[]; isActive?: boolean; priority?: number }
+export interface StreamSource { url: string; type?: string; server?: string; label?: string; referer?: string; subtitles?: StreamSubtitle[]; isActive?: boolean; priority?: number }
 export interface PlayableEpisode { id: string; number: number; title: string; audio: AudioMode; provider: string; providerLabel: string; duration?: number }
 export interface ProviderEpisodes { meta?: { title?: string; source?: string }; episodes?: { sub?: unknown[]; dub?: unknown[] } }
 
@@ -84,7 +84,6 @@ export async function getEpisodeSources(episode: PlayableEpisode): Promise<Strea
     const subtitles = source.subtitles || payload.subtitles || [];
     return {
       ...source,
-      provider: episode.provider,
       url: shouldProxy ? proxiedUrl(source.url) : source.url,
       subtitles: subtitles.map((subtitle) => ({ ...subtitle, url: shouldProxy ? proxiedUrl(subtitle.url) : subtitle.url })),
     };
