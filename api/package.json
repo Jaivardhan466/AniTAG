@@ -1,0 +1,10 @@
+{
+  "name": "all-api",
+  "version": "2.2.1",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}

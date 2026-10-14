@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: anitag
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: node api/server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
